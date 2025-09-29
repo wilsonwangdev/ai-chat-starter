@@ -1,0 +1,251 @@
+---
+title: API Reference
+description: API endpoints and interfaces for the AI Chat Starter
+---
+
+# API Reference
+
+API endpoints and TypeScript interfaces for the AI Chat Starter.
+
+## REST API Endpoints
+
+### Chat API
+
+#### POST /api/chat
+
+Send a message to the AI and get a response.
+
+**Request:**
+
+```typescript
+{
+  message: string;
+  model?: string;
+  sessionId?: string;
+}
+```
+
+**Response:**
+
+```typescript
+{
+  id: string;
+  content: string;
+  role: 'assistant';
+  timestamp: string;
+}
+```
+
+**Example:**
+
+```bash
+curl -X POST http://localhost:3000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Hello, how are you?"}'
+```
+
+### Providers API
+
+#### GET /api/providers
+
+Get available AI providers and their models.
+
+**Response:**
+
+```typescript
+{
+  id: string;
+  name: string;
+  enabled: boolean;
+  models: string[];
+}[]
+```
+
+**Example:**
+
+```bash
+curl http://localhost:3000/api/providers
+```
+
+### Health Check
+
+#### GET /api/health
+
+Check if the API is running.
+
+**Response:**
+
+```typescript
+{
+  status: 'ok';
+  timestamp: string;
+}
+```
+
+## TypeScript Interfaces
+
+### Core Types
+
+```typescript
+// Message interface
+interface Message {
+  id: string;
+  content: string;
+  role: 'user' | 'assistant';
+  timestamp: Date | string;
+  status?: MessageStatus;
+}
+
+// Message status
+type MessageStatus = 'sending' | 'sent' | 'error';
+
+// Chat session
+interface ChatSession {
+  id: string;
+  title: string;
+  messages: Message[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// AI Provider
+interface AIProvider {
+  id: string;
+  name: string;
+  enabled: boolean;
+  models: string[];
+}
+
+// Chat configuration
+interface ChatConfig {
+  model: string;
+  temperature?: number;
+  maxTokens?: number;
+  systemPrompt?: string;
+}
+```
+
+### Component Props
+
+```typescript
+// Chat Container
+interface ChatContainerProps {
+  messages: Message[];
+  onSendMessage: (content: string) => void;
+  isLoading?: boolean;
+  className?: string;
+}
+
+// Message Bubble
+interface MessageBubbleProps {
+  content: string;
+  role: 'user' | 'assistant';
+  timestamp: Date | string;
+  className?: string;
+}
+
+// Chat Input
+interface ChatInputProps {
+  onSendMessage: (message: string) => void;
+  disabled?: boolean;
+  placeholder?: string;
+  className?: string;
+}
+```
+
+## Error Handling
+
+### Error Response Format
+
+```typescript
+{
+  error: {
+    code: string;
+    message: string;
+    details?: any;
+  }
+}
+```
+
+### Common Error Codes
+
+- `INVALID_REQUEST` - Malformed request
+- `MISSING_API_KEY` - AI provider API key not configured
+- `RATE_LIMIT_EXCEEDED` - Too many requests
+- `MODEL_NOT_AVAILABLE` - Requested model not available
+- `INTERNAL_ERROR` - Server error
+
+### Example Error Response
+
+```json
+{
+  "error": {
+    "code": "MISSING_API_KEY",
+    "message": "OpenAI API key is not configured"
+  }
+}
+```
+
+## Rate Limiting
+
+Default rate limits:
+- **Chat API**: 60 requests per minute per IP
+- **Providers API**: 100 requests per minute per IP
+
+Rate limit headers:
+- `X-RateLimit-Limit` - Request limit
+- `X-RateLimit-Remaining` - Remaining requests
+- `X-RateLimit-Reset` - Reset timestamp
+
+## Authentication
+
+Currently, the API doesn't require authentication. For production use, consider adding:
+
+- API key authentication
+- JWT tokens
+- OAuth integration
+- Rate limiting per user
+
+## WebSocket Support
+
+For real-time chat features, consider implementing WebSocket endpoints:
+
+```typescript
+// WebSocket message types
+type WSMessage = 
+  | { type: 'chat', data: { message: string, sessionId: string } }
+  | { type: 'typing', data: { sessionId: string } }
+  | { type: 'response', data: Message };
+```
+
+## SDK Usage
+
+Use the built-in React hooks for API integration:
+
+```typescript
+import { useState } from 'react';
+
+function useChat() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const sendMessage = async (content: string) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: content }),
+      });
+      const data = await response.json();
+      setMessages(prev => [...prev, data]);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return { messages, sendMessage, isLoading };
+}
+```

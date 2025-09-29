@@ -1,0 +1,75 @@
+---
+title: Installation
+description: How to install and set up the AI Chat Starter
+---
+
+# Installation
+
+Get the AI Chat Starter up and running on your local machine.
+
+## Prerequisites
+
+- **Node.js** 18+ 
+- **pnpm** (recommended)
+- **Git**
+
+## Quick Setup
+
+### 1. Clone & Install
+
+```bash
+git clone <your-repo-url>
+cd ai-chat-starter
+pnpm install
+```
+
+### 2. Environment Configuration
+
+```bash
+cp apps/web/.env.example apps/web/.env.local
+```
+
+Edit `apps/web/.env.local`:
+
+```bash
+# Required for AI functionality
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Optional
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+```
+
+### 3. Start Development
+
+```bash
+# Start all services
+pnpm dev
+
+# Or start individually
+pnpm dev:web    # Chat app (port 3000)
+pnpm dev:docs   # Documentation (port 3001)
+```
+
+## Verification
+
+- **Chat App**: [http://localhost:3000](http://localhost:3000)
+- **Documentation**: [http://localhost:3001](http://localhost:3001)
+
+## Troubleshooting
+
+**Node.js Version**
+```bash
+node --version  # Should be 18+
+```
+
+**Install pnpm**
+```bash
+npm install -g pnpm
+```
+
+**Port Conflicts**
+Development servers will automatically use next available ports if 3000/3001 are busy.
+
+## Next Steps
+
+See the [Development Guide](/docs/development) to start customizing your application.

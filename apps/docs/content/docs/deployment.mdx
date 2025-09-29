@@ -1,0 +1,162 @@
+---
+title: Deployment
+description: How to deploy the AI Chat Starter to production
+---
+
+# Deployment
+
+Deploy your AI Chat Starter to production environments.
+
+## Build for Production
+
+```bash
+# Build all packages
+pnpm build
+
+# Build specific apps
+pnpm build:web
+pnpm build:docs
+```
+
+## Deployment Platforms
+
+### Vercel (Recommended)
+
+**Web Application:**
+
+1. Connect your repository to Vercel
+2. Set build command: `pnpm build:web`
+3. Set output directory: `apps/web/.next`
+4. Add environment variables:
+   ```
+   OPENAI_API_KEY=your_key
+   ANTHROPIC_API_KEY=your_key
+   ```
+
+**Documentation:**
+
+1. Create separate Vercel project for docs
+2. Set build command: `pnpm build:docs`
+3. Set output directory: `apps/docs/.next`
+
+### Netlify
+
+**Web Application:**
+
+1. Build command: `pnpm build:web`
+2. Publish directory: `apps/web/.next`
+3. Add environment variables in Netlify dashboard
+
+### Docker
+
+Create `Dockerfile` in project root:
+
+```dockerfile
+FROM node:18-alpine AS base
+RUN npm install -g pnpm
+
+FROM base AS deps
+WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/web/package.json ./apps/web/
+COPY packages/*/package.json ./packages/*/
+RUN pnpm install --frozen-lockfile
+
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN pnpm build:web
+
+FROM base AS runner
+WORKDIR /app
+ENV NODE_ENV production
+COPY --from=builder /app/apps/web/.next ./apps/web/.next
+COPY --from=builder /app/apps/web/package.json ./apps/web/
+COPY --from=deps /app/node_modules ./node_modules
+EXPOSE 3000
+CMD ["pnpm", "start:web"]
+```
+
+## Environment Variables
+
+### Required
+
+- `OPENAI_API_KEY` - OpenAI API key for GPT models
+- `ANTHROPIC_API_KEY` - Anthropic API key for Claude models
+
+### Optional
+
+- `NODE_ENV` - Set to `production`
+- `NEXT_PUBLIC_APP_URL` - Your app's public URL
+
+## Performance Optimization
+
+### Next.js Optimizations
+
+Already configured:
+- Image optimization
+- Bundle splitting
+- Tree shaking
+- Compression
+
+### Additional Optimizations
+
+1. **CDN**: Use Vercel's Edge Network or Cloudflare
+2. **Caching**: Configure appropriate cache headers
+3. **Monitoring**: Add error tracking (Sentry, LogRocket)
+
+## Security Considerations
+
+1. **API Keys**: Never expose in client-side code
+2. **CORS**: Configure for your domain only
+3. **Rate Limiting**: Implement API rate limiting
+4. **HTTPS**: Always use HTTPS in production
+
+## Monitoring
+
+### Recommended Tools
+
+- **Vercel Analytics** - Built-in performance monitoring
+- **Sentry** - Error tracking and performance monitoring
+- **LogRocket** - Session replay and debugging
+
+### Health Checks
+
+Add health check endpoint:
+
+```typescript
+// apps/web/src/app/api/health/route.ts
+export async function GET() {
+  return Response.json({ status: 'ok', timestamp: new Date().toISOString() });
+}
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**Build Failures:**
+- Check Node.js version (18+)
+- Verify all dependencies are installed
+- Check TypeScript errors
+
+**Runtime Errors:**
+- Verify environment variables are set
+- Check API key permissions
+- Monitor server logs
+
+### Debug Mode
+
+Enable debug logging:
+
+```bash
+DEBUG=* pnpm start
+```
+
+## Next Steps
+
+- Set up monitoring and alerting
+- Configure CI/CD pipeline
+- Add performance monitoring
+- Set up error tracking

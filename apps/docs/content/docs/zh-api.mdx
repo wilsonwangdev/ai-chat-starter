@@ -1,0 +1,251 @@
+---
+title: API 参考
+description: AI 聊天启动器的 API 端点和接口
+---
+
+# API 参考
+
+AI 聊天启动器的 API 端点和 TypeScript 接口。
+
+## REST API 端点
+
+### 聊天 API
+
+#### POST /api/chat
+
+向 AI 发送消息并获取响应。
+
+**请求:**
+
+```typescript
+{
+  message: string;
+  model?: string;
+  sessionId?: string;
+}
+```
+
+**响应:**
+
+```typescript
+{
+  id: string;
+  content: string;
+  role: 'assistant';
+  timestamp: string;
+}
+```
+
+**示例:**
+
+```bash
+curl -X POST http://localhost:3000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "你好，你怎么样？"}'
+```
+
+### 提供商 API
+
+#### GET /api/providers
+
+获取可用的 AI 提供商及其模型。
+
+**响应:**
+
+```typescript
+{
+  id: string;
+  name: string;
+  enabled: boolean;
+  models: string[];
+}[]
+```
+
+**示例:**
+
+```bash
+curl http://localhost:3000/api/providers
+```
+
+### 健康检查
+
+#### GET /api/health
+
+检查 API 是否正在运行。
+
+**响应:**
+
+```typescript
+{
+  status: 'ok';
+  timestamp: string;
+}
+```
+
+## TypeScript 接口
+
+### 核心类型
+
+```typescript
+// 消息接口
+interface Message {
+  id: string;
+  content: string;
+  role: 'user' | 'assistant';
+  timestamp: Date | string;
+  status?: MessageStatus;
+}
+
+// 消息状态
+type MessageStatus = 'sending' | 'sent' | 'error';
+
+// 聊天会话
+interface ChatSession {
+  id: string;
+  title: string;
+  messages: Message[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// AI 提供商
+interface AIProvider {
+  id: string;
+  name: string;
+  enabled: boolean;
+  models: string[];
+}
+
+// 聊天配置
+interface ChatConfig {
+  model: string;
+  temperature?: number;
+  maxTokens?: number;
+  systemPrompt?: string;
+}
+```
+
+### 组件属性
+
+```typescript
+// 聊天容器
+interface ChatContainerProps {
+  messages: Message[];
+  onSendMessage: (content: string) => void;
+  isLoading?: boolean;
+  className?: string;
+}
+
+// 消息气泡
+interface MessageBubbleProps {
+  content: string;
+  role: 'user' | 'assistant';
+  timestamp: Date | string;
+  className?: string;
+}
+
+// 聊天输入
+interface ChatInputProps {
+  onSendMessage: (message: string) => void;
+  disabled?: boolean;
+  placeholder?: string;
+  className?: string;
+}
+```
+
+## 错误处理
+
+### 错误响应格式
+
+```typescript
+{
+  error: {
+    code: string;
+    message: string;
+    details?: any;
+  }
+}
+```
+
+### 常见错误代码
+
+- `INVALID_REQUEST` - 请求格式错误
+- `MISSING_API_KEY` - 未配置 AI 提供商 API 密钥
+- `RATE_LIMIT_EXCEEDED` - 请求过于频繁
+- `MODEL_NOT_AVAILABLE` - 请求的模型不可用
+- `INTERNAL_ERROR` - 服务器错误
+
+### 错误响应示例
+
+```json
+{
+  "error": {
+    "code": "MISSING_API_KEY",
+    "message": "未配置 OpenAI API 密钥"
+  }
+}
+```
+
+## 速率限制
+
+默认速率限制:
+- **聊天 API**: 每个 IP 每分钟 60 次请求
+- **提供商 API**: 每个 IP 每分钟 100 次请求
+
+速率限制头:
+- `X-RateLimit-Limit` - 请求限制
+- `X-RateLimit-Remaining` - 剩余请求数
+- `X-RateLimit-Reset` - 重置时间戳
+
+## 身份验证
+
+目前 API 不需要身份验证。对于生产使用，考虑添加:
+
+- API 密钥身份验证
+- JWT 令牌
+- OAuth 集成
+- 按用户速率限制
+
+## WebSocket 支持
+
+对于实时聊天功能，考虑实现 WebSocket 端点:
+
+```typescript
+// WebSocket 消息类型
+type WSMessage = 
+  | { type: 'chat', data: { message: string, sessionId: string } }
+  | { type: 'typing', data: { sessionId: string } }
+  | { type: 'response', data: Message };
+```
+
+## SDK 使用
+
+使用内置的 React hooks 进行 API 集成:
+
+```typescript
+import { useState } from 'react';
+
+function useChat() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const sendMessage = async (content: string) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: content }),
+      });
+      const data = await response.json();
+      setMessages(prev => [...prev, data]);
+    } catch (error) {
+      console.error('发送消息失败:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return { messages, sendMessage, isLoading };
+}
+```

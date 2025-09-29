@@ -1,0 +1,75 @@
+---
+title: 安装指南
+description: 如何安装和设置 AI 聊天启动器
+---
+
+# 安装指南
+
+在本地机器上快速搭建 AI 聊天启动器。
+
+## 前置要求
+
+- **Node.js** 18+ 
+- **pnpm** (推荐)
+- **Git**
+
+## 快速设置
+
+### 1. 克隆和安装
+
+```bash
+git clone <your-repo-url>
+cd ai-chat-starter
+pnpm install
+```
+
+### 2. 环境配置
+
+```bash
+cp apps/web/.env.example apps/web/.env.local
+```
+
+编辑 `apps/web/.env.local`:
+
+```bash
+# AI 功能必需
+OPENAI_API_KEY=your_openai_api_key_here
+
+# 可选
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+```
+
+### 3. 启动开发
+
+```bash
+# 启动所有服务
+pnpm dev
+
+# 或单独启动
+pnpm dev:web    # 聊天应用 (端口 3000)
+pnpm dev:docs   # 文档站点 (端口 3001)
+```
+
+## 验证安装
+
+- **聊天应用**: [http://localhost:3000](http://localhost:3000)
+- **文档站点**: [http://localhost:3001](http://localhost:3001)
+
+## 故障排除
+
+**Node.js 版本**
+```bash
+node --version  # 应该是 18+
+```
+
+**安装 pnpm**
+```bash
+npm install -g pnpm
+```
+
+**端口冲突**
+如果 3000/3001 端口被占用，开发服务器会自动使用下一个可用端口。
+
+## 下一步
+
+查看[开发指南](/docs/zh-development)开始自定义您的应用程序。

@@ -1,0 +1,156 @@
+---
+title: Development
+description: Development guide for the AI Chat Starter
+---
+
+# Development Guide
+
+Development workflow and best practices for the AI Chat Starter.
+
+## Commands
+
+### Global Commands
+
+```bash
+pnpm install     # Install dependencies
+pnpm dev         # Start all development servers
+pnpm build       # Build all packages
+pnpm test        # Run all tests
+pnpm lint        # Lint all packages
+pnpm format      # Format code
+```
+
+### Package-Specific Commands
+
+```bash
+pnpm dev:web     # Web application
+pnpm dev:docs    # Documentation
+pnpm build:web   # Build web app
+pnpm build:docs  # Build documentation
+pnpm test:watch  # Tests in watch mode
+```
+
+## Adding Components
+
+### UI Components
+
+Create in `packages/ui/src/components/`:
+
+```tsx
+// packages/ui/src/components/my-component.tsx
+import React from 'react';
+
+interface MyComponentProps {
+  title: string;
+}
+
+export function MyComponent({ title }: MyComponentProps): React.ReactElement {
+  return <div>{title}</div>;
+}
+```
+
+Export from `packages/ui/src/index.ts`:
+
+```typescript
+export { MyComponent } from './components/my-component';
+```
+
+### Chat Components
+
+Located in `packages/ui/src/components/chat/`:
+
+- `chat-container.tsx` - Main layout
+- `chat-input.tsx` - Message input
+- `chat-messages.tsx` - Messages display
+- `message-bubble.tsx` - Individual message
+
+## Types
+
+Centralized in `packages/types/src/`:
+
+```typescript
+export interface Message {
+  id: string;
+  content: string;
+  role: 'user' | 'assistant';
+  timestamp: Date | string;
+}
+```
+
+## Testing
+
+```bash
+# Run tests
+pnpm test
+
+# Watch mode
+pnpm test:watch
+
+# Specific package
+cd packages/ui && pnpm test
+```
+
+Example test:
+
+```typescript
+import { render, screen } from '@testing-library/react';
+import { Button } from './button';
+
+describe('Button', () => {
+  it('renders correctly', () => {
+    render(<Button>Click me</Button>);
+    expect(screen.getByRole('button')).toHaveTextContent('Click me');
+  });
+});
+```
+
+## Code Quality
+
+Pre-commit hooks automatically:
+- Format with Prettier
+- Fix ESLint issues
+- Run type checking
+
+```bash
+pnpm lint        # Check linting
+pnpm lint:fix    # Fix issues
+pnpm format      # Format code
+```
+
+## Environment Variables
+
+Create `apps/web/.env.local`:
+
+```bash
+OPENAI_API_KEY=your_key_here
+ANTHROPIC_API_KEY=your_key_here
+NODE_ENV=development
+```
+
+## Hot Reload
+
+- **Web App**: React components hot reload
+- **UI Package**: Changes reflect immediately in web app
+- **Types Package**: Requires restart
+- **Documentation**: MDX content hot reload
+
+## VS Code Extensions
+
+Recommended:
+- TypeScript and JavaScript Language Features
+- ESLint
+- Prettier
+- Tailwind CSS IntelliSense
+
+## Bundle Analysis
+
+```bash
+cd apps/web
+pnpm build
+npx @next/bundle-analyzer
+```
+
+## Next Steps
+
+- [Deployment Guide](/docs/deployment)
+- [API Reference](/docs/api)

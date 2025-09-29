@@ -1,0 +1,162 @@
+---
+title: 部署指南
+description: 如何将 AI 聊天启动器部署到生产环境
+---
+
+# 部署指南
+
+将您的 AI 聊天启动器部署到生产环境。
+
+## 生产构建
+
+```bash
+# 构建所有包
+pnpm build
+
+# 构建特定应用
+pnpm build:web
+pnpm build:docs
+```
+
+## 部署平台
+
+### Vercel (推荐)
+
+**Web 应用:**
+
+1. 将仓库连接到 Vercel
+2. 设置构建命令: `pnpm build:web`
+3. 设置输出目录: `apps/web/.next`
+4. 添加环境变量:
+   ```
+   OPENAI_API_KEY=your_key
+   ANTHROPIC_API_KEY=your_key
+   ```
+
+**文档站点:**
+
+1. 为文档创建单独的 Vercel 项目
+2. 设置构建命令: `pnpm build:docs`
+3. 设置输出目录: `apps/docs/.next`
+
+### Netlify
+
+**Web 应用:**
+
+1. 构建命令: `pnpm build:web`
+2. 发布目录: `apps/web/.next`
+3. 在 Netlify 控制台添加环境变量
+
+### Docker
+
+在项目根目录创建 `Dockerfile`:
+
+```dockerfile
+FROM node:18-alpine AS base
+RUN npm install -g pnpm
+
+FROM base AS deps
+WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/web/package.json ./apps/web/
+COPY packages/*/package.json ./packages/*/
+RUN pnpm install --frozen-lockfile
+
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN pnpm build:web
+
+FROM base AS runner
+WORKDIR /app
+ENV NODE_ENV production
+COPY --from=builder /app/apps/web/.next ./apps/web/.next
+COPY --from=builder /app/apps/web/package.json ./apps/web/
+COPY --from=deps /app/node_modules ./node_modules
+EXPOSE 3000
+CMD ["pnpm", "start:web"]
+```
+
+## 环境变量
+
+### 必需
+
+- `OPENAI_API_KEY` - OpenAI API 密钥用于 GPT 模型
+- `ANTHROPIC_API_KEY` - Anthropic API 密钥用于 Claude 模型
+
+### 可选
+
+- `NODE_ENV` - 设置为 `production`
+- `NEXT_PUBLIC_APP_URL` - 您应用的公共 URL
+
+## 性能优化
+
+### Next.js 优化
+
+已配置:
+- 图片优化
+- 包分割
+- Tree shaking
+- 压缩
+
+### 额外优化
+
+1. **CDN**: 使用 Vercel 的 Edge Network 或 Cloudflare
+2. **缓存**: 配置适当的缓存头
+3. **监控**: 添加错误跟踪 (Sentry, LogRocket)
+
+## 安全考虑
+
+1. **API 密钥**: 永远不要在客户端代码中暴露
+2. **CORS**: 仅为您的域名配置
+3. **速率限制**: 实施 API 速率限制
+4. **HTTPS**: 生产环境始终使用 HTTPS
+
+## 监控
+
+### 推荐工具
+
+- **Vercel Analytics** - 内置性能监控
+- **Sentry** - 错误跟踪和性能监控
+- **LogRocket** - 会话重放和调试
+
+### 健康检查
+
+添加健康检查端点:
+
+```typescript
+// apps/web/src/app/api/health/route.ts
+export async function GET() {
+  return Response.json({ status: 'ok', timestamp: new Date().toISOString() });
+}
+```
+
+## 故障排除
+
+### 常见问题
+
+**构建失败:**
+- 检查 Node.js 版本 (18+)
+- 验证所有依赖已安装
+- 检查 TypeScript 错误
+
+**运行时错误:**
+- 验证环境变量已设置
+- 检查 API 密钥权限
+- 监控服务器日志
+
+### 调试模式
+
+启用调试日志:
+
+```bash
+DEBUG=* pnpm start
+```
+
+## 下一步
+
+- 设置监控和告警
+- 配置 CI/CD 流水线
+- 添加性能监控
+- 设置错误跟踪

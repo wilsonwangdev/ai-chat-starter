@@ -1,0 +1,16 @@
+{
+  "title": "AI Chat Starter Documentation",
+  "pages": [
+    "index",
+    "installation",
+    "development",
+    "deployment",
+    "api",
+    "---Chinese Documentation---",
+    "zh-cn",
+    "zh-installation",
+    "zh-development",
+    "zh-deployment",
+    "zh-api"
+  ]
+}

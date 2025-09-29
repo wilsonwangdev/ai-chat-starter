@@ -1,0 +1,57 @@
+{
+  "name": "ai-chat-starter",
+  "version": "1.0.0",
+  "description": "A modern AI chat application starter template with Next.js, TypeScript, and comprehensive testing",
+  "type": "module",
+  "private": true,
+  "keywords": [
+    "ai",
+    "chat",
+    "nextjs",
+    "typescript",
+    "starter",
+    "template",
+    "monorepo"
+  ],
+  "author": "Your Name <your.email@example.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "dev:web": "turbo run dev --filter=@ai-chat/web",
+    "dev:docs": "turbo run dev --filter=@ai-chat/docs",
+    "build:web": "turbo run build --filter=@ai-chat/web",
+    "build:docs": "turbo run build --filter=@ai-chat/docs",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md,mdx,css}\"",
+    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md,mdx,css}\"",
+    "type-check": "turbo run type-check",
+    "test": "turbo run test",
+    "test:watch": "turbo run test:watch",
+    "clean": "turbo run clean",
+    "clean:all": "bash scripts/clean.sh",
+    "setup": "bash scripts/setup-template.sh",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
+    "prettier": "^3.6.2",
+    "turbo": "^2.5.8"
+  },
+  "packageManager": "pnpm@8.12.1",
+  "msw": {
+    "workerDirectory": [
+      "apps/web/public"
+    ]
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "prettier --write"
+    ],
+    "*.{json,md,css,scss,yaml,yml}": [
+      "prettier --write"
+    ]
+  }
+}
